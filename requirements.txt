@@ -16,3 +16,6 @@ numpy
 # --- Utilities ---
 apscheduler
 requests
+
+# --- Library Sensor ---
+python-dotenv

@@ -15,7 +15,7 @@ from core.text_preprocessing import preprocess_text
 
 BASE_MODEL = "indobenchmark/indobert-base-p1"
 DATA_PATH = "dataset/report_classifier.csv"
-MODEL_DIR = "model/emergency_classifier"
+from config.settings import MODEL_DIR_EMERGENCY as MODEL_DIR
 
 def compute_metrics(eval_pred):
     logits, labels = eval_pred

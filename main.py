@@ -1,11 +1,13 @@
-from fastapi import FastAPI, HTTPException
-from fastapi import BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
+
 from core.ai_engine import ai_engine
 from database.db import init_db, save_prediction
 from scheduler import start_scheduler
 import retrain_manager
+from config.settings import ALLOWED_ORIGINS
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,6 +21,15 @@ async def lifespan(app: FastAPI):
     print("🛑 System offline.")
 
 app = FastAPI(title="Sentinel AI API", lifespan=lifespan)
+
+# Menerapkan CORS Middleware dari .env
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class PredictRequest(BaseModel):
     text: str
@@ -58,11 +69,6 @@ async def predict(data: PredictRequest):
 # Rute ini akan dipanggil oleh tombol "Retrain Model" di Dashboard
 @app.post("/admin/retrain/{model_type}")
 async def trigger_retrain(model_type: str, background_tasks: BackgroundTasks):
-    """
-    model_type bisa berisi: "sentiment", "topic", atau "emergency"
-    Karena retrain butuh waktu lama, kita masukkan ke BackgroundTasks 
-    agar Frontend tidak loading selamanya (Timeout).
-    """
     valid_models = ["sentiment", "topic", "emergency"]
     if model_type not in valid_models:
         raise HTTPException(status_code=400, detail="Tipe model tidak valid!")

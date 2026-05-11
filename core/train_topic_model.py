@@ -15,7 +15,7 @@ from core.text_preprocessing import preprocess_text
 
 BASE_MODEL = "indobenchmark/indobert-base-p1"
 DATA_PATH = "dataset/topic_dataset.csv"
-MODEL_DIR = "model/topic_classifier"
+from config.settings import MODEL_DIR_TOPIC as MODEL_DIR
 LABEL_MAP = {"kriminal": 0, "lalu_lintas": 1, "pelayanan": 2, "sosial": 3, "lainnya": 4}
 
 def compute_metrics(eval_pred):

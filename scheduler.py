@@ -3,8 +3,8 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from database.db import save_prediction
 from core.ai_engine import ai_engine
+from config.settings import AUTO_SCRAPE_INTERVAL, SCRAPER_API_URL
 
-SCRAPER_API_URL = "http://localhost:9000/posts"
 processed_ids = set()
 
 def fetch_and_process():
@@ -25,18 +25,14 @@ def fetch_and_process():
             if not raw_text:
                 continue
 
-            # JALANKAN AI ENGINE
             result = ai_engine.predict_all(raw_text)
             
-            # Jika teks ternyata sampah (cuma isi link/kosong), skip!
             if result is None:
                 processed_ids.add(external_id)
                 continue
 
-            # UNPACK 7 NILAI (Harus pas 7 agar tidak error)
             sent, s_conf, top, t_conf, emg, loc, clean_text = result
 
-            # SIMPAN CLEAN_TEXT KE DATABASE (Bukan raw_text!)
             save_prediction(
                 external_id=external_id, 
                 text=clean_text, 
@@ -58,6 +54,7 @@ def fetch_and_process():
 
 def start_scheduler():
     scheduler = BackgroundScheduler(daemon=True)
-    scheduler.add_job(fetch_and_process, "interval", seconds=15, id="scraper_job")
+    # Mengambil interval dari .env (secara default 15 detik)
+    scheduler.add_job(fetch_and_process, "interval", seconds=AUTO_SCRAPE_INTERVAL, id="scraper_job")
     scheduler.start()
-    print("🚀 Auto-Scraping Job Started (Interval: 15s)")
+    print(f"🚀 Auto-Scraping Job Started (Interval: {AUTO_SCRAPE_INTERVAL}s)")

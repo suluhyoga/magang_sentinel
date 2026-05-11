@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from core.location_detector import detect_location_advanced
 from core.text_preprocessing import preprocess_text
+from config.settings import MODEL_DIR_SENTIMENT, MODEL_DIR_TOPIC, MODEL_DIR_EMERGENCY, MAX_SEQ_LENGTH
 
 class SentinelAI:
     def __init__(self):
@@ -17,18 +18,23 @@ class SentinelAI:
 
     def load_models(self):
         print("🧠 Memuat Sentinel AI Core Engine...")
-        self.sent_tok = AutoTokenizer.from_pretrained("model/indobert_sentiment")
-        self.sent_mod = AutoModelForSequenceClassification.from_pretrained("model/indobert_sentiment").to(self.device).eval()
+        self.sent_tok = AutoTokenizer.from_pretrained(MODEL_DIR_SENTIMENT)
+        self.sent_mod = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR_SENTIMENT).to(self.device).eval()
 
-        self.top_tok = AutoTokenizer.from_pretrained("model/topic_classifier")
-        self.top_mod = AutoModelForSequenceClassification.from_pretrained("model/topic_classifier").to(self.device).eval()
+        self.top_tok = AutoTokenizer.from_pretrained(MODEL_DIR_TOPIC)
+        self.top_mod = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR_TOPIC).to(self.device).eval()
 
-        self.emg_tok = AutoTokenizer.from_pretrained("model/emergency_classifier")
-        self.emg_mod = AutoModelForSequenceClassification.from_pretrained("model/emergency_classifier").to(self.device).eval()
+        self.emg_tok = AutoTokenizer.from_pretrained(MODEL_DIR_EMERGENCY)
+        self.emg_mod = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR_EMERGENCY).to(self.device).eval()
+
+    def reload_models(self):
+        """Fungsi dipanggil setelah Retrain sukses untuk menyegarkan memori"""
+        self.load_models()
 
     @torch.no_grad()
     def _run_inference(self, text, tokenizer, model, labels, threshold=0.4):
-        inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=128).to(self.device)
+        # Menggunakan batas max_length dari setting .env
+        inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=MAX_SEQ_LENGTH).to(self.device)
         outputs = model(**inputs)
         probs = F.softmax(outputs.logits, dim=1)
         conf, pred = torch.max(probs, dim=1)

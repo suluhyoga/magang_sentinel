@@ -15,7 +15,7 @@ from core.text_preprocessing import preprocess_text
 
 BASE_MODEL = "indobenchmark/indobert-base-p1"
 DATA_PATH = "dataset/twitter_sentiment.csv"
-MODEL_DIR = "model/indobert_sentiment"
+from config.settings import MODEL_DIR_SENTIMENT as MODEL_DIR
 LABEL_MAP = {"negative": 0, "neutral": 1, "positive": 2}
 
 def compute_metrics(eval_pred):

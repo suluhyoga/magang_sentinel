@@ -1,16 +1,12 @@
 import sqlite3
 import hashlib
-
-DB_NAME = "sentinel_ai.db"
-
+from config.settings import DB_PATH
 
 def get_connection():
-    return sqlite3.connect(DB_NAME)
-
+    return sqlite3.connect(DB_PATH)
 
 def generate_text_hash(text):
     return hashlib.md5(text.encode("utf-8")).hexdigest()
-
 
 def init_db():
     conn = get_connection()
@@ -33,57 +29,23 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-
     conn.commit()
     conn.close()
 
-
-def save_prediction(
-    external_id,
-    text,
-    sentiment,
-    sentiment_conf,
-    topic,
-    topic_conf,
-    emergency,
-    location
-):
+def save_prediction(external_id, text, sentiment, sentiment_conf, topic, topic_conf, emergency, location):
     conn = get_connection()
     cursor = conn.cursor()
-
     text_hash = generate_text_hash(text)
 
     try:
         cursor.execute("""
             INSERT INTO predictions (
-                external_id,
-                text,
-                text_hash,
-                sentiment,
-                sentiment_conf,
-                topic,
-                topic_conf,
-                emergency,
-                location
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            external_id,
-            text,
-            text_hash,
-            sentiment,
-            sentiment_conf,
-            topic,
-            topic_conf,
-            emergency,
-            location
-        ))
-
+                external_id, text, text_hash, sentiment, sentiment_conf, topic, topic_conf, emergency, location
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (external_id, text, text_hash, sentiment, sentiment_conf, topic, topic_conf, emergency, location))
         conn.commit()
-        print(f"💾 Saved ID {external_id}")
-
+        if external_id: print(f"💾 Saved ID {external_id}")
     except sqlite3.IntegrityError:
-        print(f"⚠ Duplicate detected (ID or Text), skipped")
-
+        pass # Mengabaikan log duplicate agar terminal lebih bersih
     finally:
         conn.close()
