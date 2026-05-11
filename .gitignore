@@ -1,0 +1,22 @@
+# Mengabaikan virtual environment
+venv/
+env/
+
+# Mengabaikan cache python
+__pycache__/
+*.pyc
+
+# Mengabaikan database lokal (biar server bikin DB baru yang fresh)
+database/*.db
+*.sqlite3
+
+# Mengabaikan folder model (KARENA UKURANNYA RATUSAN MB)
+model/
+
+# Mengabaikan file database lokal
+sentinel_ai.db
+
+# Mengabaikan checkpoint training (INI TERSANGKANYA!)
+tmp_emg/
+tmp_sent/
+tmp_topic/
